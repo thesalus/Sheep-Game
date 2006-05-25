@@ -130,7 +130,7 @@ public class ECONGAME extends Applet implements MouseListener
 	int		numactions;			// number of actions performed so far
 	int 	rsrc1_add, rsrc2_add, rsrc3_add, rsrc4_add;
 			// number of each resource added
-	int		explore_num, populate_num, randomize_num, industrialize_num, globalize_num;
+	int		explore_num, populate_num, randomize_num, globalize_num;
 			// number of times that thing can be done a turn.
 	int		tradepartner = 0;	// the trading partner
 
@@ -141,13 +141,17 @@ public class ECONGAME extends Applet implements MouseListener
 	int 	cardnum;			// the currently selected card's number
 	boolean displaycard;		// flag for whether or not to display card
 	int		cardspicked;		// number of cards picked up
-	int		decksize = 20; 		// number of cards in the deck
+	int		decksize = 38; 		// number of cards in the deck
 
 	// Temporary Variables
 	int		tempcol=0,temprow=0;// the temporary row and column storing things
 	int		temp = 0;			// multi-use temp variable
 
 	int[] 	trade = {0, 0, 0, 0};
+	double		interestrate = 3;	// interest rate in percent
+	double[]	exchange = { 1, 1, 1, 1 };	// the exchange rate
+	int[]	loan = {2000, 2000, 2000, 2000, 2000};	// initial loan
+	int[] paying = {0,0,0,0};			// amount current player is paying
 
 	// constants to make referring to stuff easier
 	final int LOT_UNEXPLORED	= 0;
@@ -160,9 +164,9 @@ public class ECONGAME extends Applet implements MouseListener
 	final int BG_IMG			= 10;
 	final int RESOURCE_IMG		= 17;
 	final int INDUSTRY_IMG		= 20;
-	final int CARD_IMG			= 30;
+	final int CARD_IMG			= 31;
 
-	final int CARD_LNGTH		= 12;
+	final int CARD_LNGTH		= 17;
 
 	// resource names
 	String[]	resource_names =
@@ -218,6 +222,17 @@ public class ECONGAME extends Applet implements MouseListener
 						numofplayers, 1, 1, 1, 1, 0, 0, 0, -1, 3, 1, 0 ),
 		new Card_Info ( "Sheep Market", "Name a resource type. \nIf no other player owns \na land of that resource \ntype, you possess a \nmonopoly. Each land \nyou possess of that type \ncontributes 10% more \nresource points for \na bit.",
 						1, 1, 1, 1, 1, 0, 0, 0, 0, 4, 0, 4 ),
+		new Card_Info ( "Black Sheep Friday", "As sheep stocks crash, \npeople pull money out \nof their banks to pay \ntheir debts. Interest \nrates increase by 5%.",
+						1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 5 ),
+		new Card_Info ( "Sheepen Harper's Fiscal Policy", "Sheepen Harper decides \nto decrease the income \ntaxes on the resources \nof the sheep. Each player \nreceives 10% more \nresource points for each \ntile for a while.",
+						5*numofplayers, 1.1, 1.1, 1.1, 1.1, 0, 0, 0, 0, 2, 0, 0 ),
+		new Card_Info ( "Xenophobic sheep", "Uncertainty in the US \ndollar has caused the \nvalue of the Canadian \ndollar to skyrocket. Thus, \nthe effective price of the \nsheep has increased, so \ndemand decreases. Each \nplayer receives 10% less \nresource points for a bit.",
+						5*numofplayers, 0.9, 0.9, 0.9, 0.9, 0, 0, 0, 0, 2, 0, 0 ),
+		new Card_Info ( "Sheep-Tippers", "They strike in the night \nleaving your sheep a tad \ntipsy. Each piece of land \ncontributes 20% less \nresource points for a bit.",
+						2*numofplayers, 0.8, 0.8, 0.8, 0.8, 0, 0, 0, 0, 4, -1, 0 ),
+		new Card_Info ( "Absurd? Insane?! Supersheep!", "A large ovinite meteor hits \none of your plots of land. \nThey gain superpowers \nand fly away. You lose all \nbut one sheep on that lot.",
+						1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 0, 6 ),
+		// so far... at card 17 with 38 cards
 	};
 
 	LinkedList 			effect_list = new LinkedList();
@@ -240,10 +255,10 @@ public class ECONGAME extends Applet implements MouseListener
 			new Tile_Info ( "Unexplored Big", 	getImage(base, "images/lot_unexplored_big.gif" ) ),	// UNEXPLORED BIG - 1
 			new Tile_Info ( "Very Green Grass", getImage(base, "images/lot_forest.gif" ) ),			// LOT_FOREST - 2
 			new Tile_Info ( "Forest Big", 		getImage(base, "images/lot_forest_big.gif" ) ),		// FOREST BIG - 3
-			new Tile_Info ( "Anthonium Ore", 	getImage(base, "images/lot_grub.gif" ) ),			// LOT_GRUB - 4
-			new Tile_Info ( "Mine Big", 		getImage(base, "images/lot_grub_big.gif" ) ),		// GRUB BIG - 5
-			new Tile_Info ( "Grub Soil", 		getImage(base, "images/lot_mine.gif" ) ),			// LOT_MINE - 6
-			new Tile_Info ( "Grub Big", 		getImage(base, "images/lot_mine_big.gif" ) ),		// MINE BIG - 7
+			new Tile_Info ( "Anthonium Ore", 	getImage(base, "images/lot_mine.gif" ) ),			// LOT_GRUB - 4
+			new Tile_Info ( "Mine Big", 		getImage(base, "images/lot_mine_big.gif" ) ),		// GRUB BIG - 5
+			new Tile_Info ( "Grub Soil", 		getImage(base, "images/lot_grub.gif" ) ),			// LOT_MINE - 6
+			new Tile_Info ( "Grub Big", 		getImage(base, "images/lot_grub_big.gif" ) ),		// MINE BIG - 7
 			new Tile_Info ( "Petting Zoo", 		getImage(base, "images/lot_care.gif" ) ),			// LOT_CARE - 8
 			new Tile_Info ( "Care Big", 		getImage(base, "images/lot_care_big.gif" ) ),		// CARE BIG - 9
 			new Tile_Info ( "Neutral BG", 		getImage(base, "images/black_big.gif" ) ),			// P0 BG 10
@@ -254,30 +269,37 @@ public class ECONGAME extends Applet implements MouseListener
 			new Tile_Info ( "Player 5 BG", 		getImage(base, "images/blue_big.gif" ) ),			// P5 BG
 			new Tile_Info ( "Sheep", 			getImage(base, "images/sheep.gif" ) ),				// Sheep 16
 			new Tile_Info ( "Grass Resource", 	getImage(base, "images/resource_grass.gif" ) ),		// Grass 17
-			new Tile_Info ( "Grub Resource", 	getImage(base, "images/resource_grub.gif" ) ),		// Grub
-			new Tile_Info ( "Ore Resource", 	getImage(base, "images/resource_ore.gif" ) ),		// Ore
+			new Tile_Info ( "Ore Resource", 	getImage(base, "images/resource_ore.gif" ) ),		// Grub
+			new Tile_Info ( "Grub Resource", 	getImage(base, "images/resource_grub.gif" ) ),		// Ore
 			new Tile_Info ( "Love Resource", 	getImage(base, "images/resource_love.gif" ) ),		// Love
 			new Tile_Info ( "Very Green Grass Mines",	getImage(base, "images/lot_forest_ind.gif" ) ),		// Ind Forest 21
-			new Tile_Info ( "Anthonium Ore Farms",		getImage(base, "images/lot_grub_ind.gif" ) ),		// Ind Grub
-			new Tile_Info ( "Grub Replicators",			getImage(base, "images/lot_mine_ind.gif" ) ),		// Ind Mine
+			new Tile_Info ( "Anthonium Ore Farms",		getImage(base, "images/lot_mine_ind.gif" ) ),		// Ind Grub
+			new Tile_Info ( "Grub Replicators",			getImage(base, "images/lot_grub_ind.gif" ) ),		// Ind Mine
 			new Tile_Info ( "Sheep Online Dating",		getImage(base, "images/lot_care_ind.gif" ) ),		// Ind Care
 			new Tile_Info ( "Forest Bigbig",	getImage(base, "images/lot_forest_ind_big.gif" ) ),	// Ind Forest 25
 			new Tile_Info ( "Grub Bigbig",		getImage(base, "images/lot_grub_ind_big.gif" ) ),	// Ind Grub
 			new Tile_Info ( "Mine Bigbig",		getImage(base, "images/lot_mine_ind_big.gif" ) ),	// Ind Mine
 			new Tile_Info ( "Care Bigbig",		getImage(base, "images/lot_care_ind_big.gif" ) ),	// Ind Care
 			new Tile_Info ( "Trade",			getImage(base, "images/trade.gif" ) ),				// Trade - 29
-			new Tile_Info ( "Card 1",			getImage(base, "images/card1.gif" ) ),				// Card 1 - 30
-			new Tile_Info ( "Card 2",			getImage(base, "images/card2.gif" ) ),				// Card 2
+			new Tile_Info ( "Pay Loan",			getImage(base, "images/payloan.gif" ) ),			// Pay Loan - 30
+			new Tile_Info ( "Card 1",			getImage(base, "images/card3.gif" ) ),				// Card 1 - 31
+			new Tile_Info ( "Card 2",			getImage(base, "images/card3.gif" ) ),				// Card 2
 			new Tile_Info ( "Card 3",			getImage(base, "images/card3.gif" ) ),				// Card 3
 			new Tile_Info ( "Card 4",			getImage(base, "images/card4.gif" ) ),				// Card 4
-			new Tile_Info ( "Card 5",			getImage(base, "images/card5.gif" ) ),				// Card 5
-			new Tile_Info ( "Card 6",			getImage(base, "images/card6.gif" ) ),				// Card 6
+			new Tile_Info ( "Card 5",			getImage(base, "images/card3.gif" ) ),				// Card 5
+			new Tile_Info ( "Card 6",			getImage(base, "images/card3.gif" ) ),				// Card 6
 			new Tile_Info ( "Card 7",			getImage(base, "images/card7.gif" ) ),				// Card 7
-			new Tile_Info ( "Card 8",			getImage(base, "images/card8.gif" ) ),				// Card 8
-			new Tile_Info ( "Card 9",			getImage(base, "images/card9.gif" ) ),				// Card 9
+			new Tile_Info ( "Card 8",			getImage(base, "images/card3.gif" ) ),				// Card 8
+			new Tile_Info ( "Card 9",			getImage(base, "images/card3.gif" ) ),				// Card 9
 			new Tile_Info ( "Card 10",			getImage(base, "images/card10.gif" ) ),				// Card 10
-			new Tile_Info ( "Card 11",			getImage(base, "images/card11.gif" ) ),				// Card 11
-			new Tile_Info ( "Card 12",			getImage(base, "images/card12.gif" ) ),				// Card 12
+			new Tile_Info ( "Card 11",			getImage(base, "images/card3.gif" ) ),				// Card 11
+			new Tile_Info ( "Card 12",			getImage(base, "images/card3.gif" ) ),				// Card 12
+			new Tile_Info ( "Card 13",			getImage(base, "images/card3.gif" ) ),				// Card 13
+			new Tile_Info ( "Card 14",			getImage(base, "images/card3.gif" ) ),				// Card 14
+			new Tile_Info ( "Card 15",			getImage(base, "images/card3.gif" ) ),				// Card 15
+			new Tile_Info ( "Card 16",			getImage(base, "images/card3.gif" ) ),				// Card 16
+			new Tile_Info ( "Card 17",			getImage(base, "images/card17.gif" ) ),				// Card 17
+			new Tile_Info ( "Card 18",			getImage(base, "images/card3.gif" ) ),				// Card 18
 		};
 
 		int tempcol, temprow;
@@ -373,14 +395,14 @@ public class ECONGAME extends Applet implements MouseListener
 						populate_num--;
 						end_action();
 					}
-					else if ( industrialize_num > 0 && instance_list[disp_col][disp_row].sheep == 4 )
+					else if ( populate_num > 0 && instance_list[disp_col][disp_row].sheep == 4 )
 					{
 						if ( player_list[cur_turn].resources[(instance_list[disp_col][disp_row].TI_ref/2)-1] > 500 )
 						{
 							instance_list[disp_col][disp_row].sheep++;
 							player_list[cur_turn].resources[(instance_list[disp_col][disp_row].TI_ref/2)-1] -= 500;
 
-							industrialize_num--;
+							populate_num--;
 							end_action();
 						}
 					}
@@ -590,6 +612,118 @@ public class ECONGAME extends Applet implements MouseListener
 			tradepartner=0;
 			repaint();
 		}
+		// BANK-loan paying buttons
+		else if ( (mousex >= 405) && (mousex <= 416) && (mousey >= 343) && (mousey <= 354) )
+		{
+			if ( ke.getButton() == 1 )			// when left mouse button is clicked
+			{
+				if (player_list[cur_turn].resources[0] >= paying[0]+100)
+				{
+					if (total_paying()+100*exchange[0] > loan[cur_turn-1])
+					{
+						paying[0]+=(int) (loan[cur_turn-1]-total_paying())/exchange[0];
+					}
+					else
+					{
+						paying[0]+=100;
+					}
+				}
+			}
+			else if ( ke.getButton() == 3 )
+			{
+				if ( paying[0] > 0 )
+				{
+					paying[0]-=100;
+				}
+			}
+			repaint();
+		}
+		else if ( (mousex >= 427) && (mousex <= 438) && (mousey >= 343) && (mousey <= 354) )
+		{
+			if ( ke.getButton() == 1 )			// when left mouse button is clicked
+			{
+				if (player_list[cur_turn].resources[1] >= paying[1]+100)
+				{
+					if (total_paying()+100*exchange[1] > loan[cur_turn-1])
+					{
+						paying[1]+=(int) (loan[cur_turn-1]-total_paying())/exchange[1];
+					}
+					else
+					{
+						paying[1]+=100;
+					}
+				}
+			}
+			else if ( ke.getButton() == 3 )
+			{
+				if ( paying[1] > 0 )
+				{
+					paying[1]-=100;
+				}
+			}
+			repaint();
+		}
+		else if ( (mousex >= 449) && (mousex <= 460) && (mousey >= 343) && (mousey <= 354) )
+		{
+			if ( ke.getButton() == 1 )			// when left mouse button is clicked
+			{
+				if (player_list[cur_turn].resources[2] >= paying[2]+100)
+				{
+					if (total_paying()+100*exchange[2] > loan[cur_turn-1])
+					{
+						paying[2]+=(int) (loan[cur_turn-1]-total_paying())/exchange[2];
+					}
+					else
+					{
+						paying[2]+=100;
+					}
+				}
+			}
+			else if ( ke.getButton() == 3 )
+			{
+				if ( paying[2] > 0 )
+				{
+					paying[2]-=100;
+				}
+			}
+			repaint();
+		}
+		else if ( (mousex >= 471) && (mousex <= 482) && (mousey >= 343) && (mousey <= 354) )
+		{
+			if ( ke.getButton() == 1 )			// when left mouse button is clicked
+			{
+				if (player_list[cur_turn].resources[3] >= paying[3]+100)
+				{
+					if (total_paying()+100*exchange[3] > loan[cur_turn-1])
+					{
+						paying[3]+=(int) (loan[cur_turn-1]-total_paying())/exchange[3];
+					}
+					else
+					{
+						paying[3]+=100;
+					}
+				}
+			}
+			else if ( ke.getButton() == 3 )
+			{
+				if ( paying[3] > 0 )
+				{
+					paying[3]-=100;
+				}
+			}
+			repaint();
+		}
+		// official pay loan
+		else if ( (mousex >= 490) && (mousex <= 501) && (mousey >= 343) && (mousey <= 364) )
+		{
+			loan[cur_turn-1]-=total_paying();
+			for ( int rn=0;rn<4;rn++)
+			{
+				player_list[cur_turn].resources[rn]-=paying[rn];
+				paying[rn] = 0;
+			}
+			repaint();
+		}
 
 		// end turn button
 		if ( (mousex >= 456) && (mousex <= 529) && (mousey >= 465) && (mousey <= 487) )
@@ -705,7 +839,7 @@ public class ECONGAME extends Applet implements MouseListener
 				g.drawString ( "Populate", 440, 155 );
 			}
 			// if you can industrialize it
-			else if ( instance_list[disp_col][disp_row].sheep == 4 && industrialize_num > 0 )
+			else if ( instance_list[disp_col][disp_row].sheep == 4 && populate_num > 0 )
 			{
 				g.drawRect (410,140,21,21);
 				g.drawImage ( tile_list[ (instance_list[disp_col][disp_row].TI_ref/2) + INDUSTRY_IMG ].img_file,411, 141,20,20, this);
@@ -756,6 +890,23 @@ public class ECONGAME extends Applet implements MouseListener
 			printString ( g, card_list[cardnum].explanation, 460, 200, 11);
 		}
 
+	/* BANK DISPLAY */
+		if ( loan[cur_turn-1] > 0 )
+		{
+			g.drawString ( "Bank Info", 400, 315);
+			temp = 0;
+			for ( int rn=0;rn<4;rn++ )
+			{
+				temp += player_list[cur_turn].resources[rn]*exchange[rn];
+				g.drawImage ( tile_list[RESOURCE_IMG+rn].img_file, 405+22*rn, 343, this);
+			}
+			g.drawString ( "Total: " + temp, 405, 327);
+			g.drawString ( "Loan: " + loan[cur_turn-1], 405, 339);
+			g.drawString ( "Paying: " + total_paying(), 405, 366);
+			g.drawRect(490,343,21,21);
+			g.drawImage(tile_list[30].img_file, 491,344,this);
+		}
+
 	/* EFFECT BUTTONS */
 		switch ( active_effect )
 		{
@@ -796,6 +947,7 @@ public class ECONGAME extends Applet implements MouseListener
 		}
 		g.drawRect ( 456, 465, 73, 22 );
 		g. drawString ( "End Turn", 470, 480 );
+
 	/* TRADE BUTTONS */
 		if ( tradepartner > 0 )
 		{
@@ -869,6 +1021,7 @@ public class ECONGAME extends Applet implements MouseListener
 		if ( cur_turn > 0 )
 		{
 			resource_add();
+			loan[cur_turn-1]*=1+(interestrate/100);
 		}
 
 		// change the turn
@@ -883,12 +1036,15 @@ public class ECONGAME extends Applet implements MouseListener
 		// start of turn
 		explore_num = 1;
 		populate_num =1;
-		industrialize_num = 1;
 		randomize_num = 1;
 		globalize_num = 1;
 
 		// reset variables
 		tradepartner = 0;
+		paying[0] = 0;
+		paying[1] = 0;
+		paying[2] = 0;
+		paying[3] = 0;
 		numactions = 0;
 		active_effect = 0;
 		repaint();
@@ -993,7 +1149,6 @@ public class ECONGAME extends Applet implements MouseListener
 			{
 				explore_num += temp.exp_add;
 				populate_num += temp.pop_add;
-				industrialize_num += temp.ind_add;
 				globalize_num += temp.glo_add;
 				rsrc1_add = (int) Math.floor(rsrc1_add*temp.rsrc1);
 				rsrc2_add = (int) Math.floor(rsrc2_add*temp.rsrc2);
@@ -1006,6 +1161,47 @@ public class ECONGAME extends Applet implements MouseListener
 			else if ( temp.affected == 1 )
 			{
 				temp.affected = 0;
+			}
+			else if ( temp.affected == -1 )
+			{
+				effect_list.set(enum, new Effect_Info ( temp.removed, temp.rsrc1, temp.rsrc2, temp.rsrc3, temp.rsrc4, temp.exp_add,
+										 temp.pop_add, temp.ind_add, temp.glo_add, cur_turn+1, temp.effect ));
+			}
+
+			if (temp.effect == 5)
+			{
+				interestrate +=5;
+			}
+			else if (temp.effect == 6)
+			{
+				tempcol = -1;
+				for ( int col=0;col<lot_cols;col++ )
+				{
+					for ( int row=0;row<lot_rows; row++ )
+					{
+						if ( instance_list[col][row].owner == cur_turn )
+						{
+							if (tempcol>-1)
+							{
+								if ( instance_list[col][row].sheep > instance_list[tempcol][temprow].sheep && (instance_list[col][row].sheep < 4))
+								{
+									tempcol = col;
+									temprow = row;
+								}
+							}
+							else
+							{
+								tempcol = col;
+								temprow = row;
+							}
+						}
+					}
+				}
+				instance_list[tempcol][temprow].sheep = 1;
+			}
+			else if (temp.effect == 7)
+			{
+				exchange[3] -= 0.1;
 			}
 
 			// remove it from the effects list if it is done
@@ -1035,6 +1231,11 @@ public class ECONGAME extends Applet implements MouseListener
 		}
 
 		return num;
+	}
+
+	public int total_paying ()
+	{
+		return (int) (exchange[0]*paying[0]+exchange[1]*paying[1]+exchange[2]*paying[2]+exchange[3]*paying[3]);
 	}
 
 	public void end_action ()

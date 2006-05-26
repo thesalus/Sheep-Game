@@ -127,6 +127,7 @@ public class ECONGAME extends Applet implements MouseListener
 
 	// Turn's Variables
 	int		cur_turn = 0;		// whose turn is it?
+	int		tilesexplored = 5;	// how many tiles have been explored?
 	int		numactions;			// number of actions performed so far
 	int 	rsrc1_add, rsrc2_add, rsrc3_add, rsrc4_add;
 			// number of each resource added
@@ -141,17 +142,17 @@ public class ECONGAME extends Applet implements MouseListener
 	int 	cardnum;			// the currently selected card's number
 	boolean displaycard;		// flag for whether or not to display card
 	int		cardspicked;		// number of cards picked up
-	int		decksize = 38; 		// number of cards in the deck
+	int		decksize = 50; 		// number of cards in the deck
 
 	// Temporary Variables
 	int		tempcol=0,temprow=0;// the temporary row and column storing things
 	int		temp = 0;			// multi-use temp variable
 
-	int[] 	trade = {0, 0, 0, 0};
-	double		interestrate = 3;	// interest rate in percent
-	double[]	exchange = { 1, 1, 1, 1 };	// the exchange rate
-	int[]	loan = {2000, 2000, 2000, 2000, 2000};	// initial loan
-	int[] paying = {0,0,0,0};			// amount current player is paying
+	int[] 		trade = {0, 0, 0, 0};
+	double		interestrate = 3;			// interest rate in percent
+	int[]		exchange = { 100, 100, 100, 100 };	// the exchange rate
+	int[]		loan = {2000, 2000, 2000, 2000, 2000};	// initial loan
+	int[] 		paying = {0,0,0,0};			// amount current player is paying
 
 	// constants to make referring to stuff easier
 	final int LOT_UNEXPLORED	= 0;
@@ -166,7 +167,7 @@ public class ECONGAME extends Applet implements MouseListener
 	final int INDUSTRY_IMG		= 20;
 	final int CARD_IMG			= 31;
 
-	final int CARD_LNGTH		= 17;
+	final int CARD_LNGTH		= 25;
 
 	// resource names
 	String[]	resource_names =
@@ -233,6 +234,22 @@ public class ECONGAME extends Applet implements MouseListener
 		new Card_Info ( "Absurd? Insane?! Supersheep!", "A large ovinite meteor hits \none of your plots of land. \nThey gain superpowers \nand fly away. You lose all \nbut one sheep on that lot.",
 						1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 0, 6 ),
 		// so far... at card 17 with 38 cards
+		new Card_Info ( "Herbal Magic Weight Loss", "The latest trend in weight \nloss programs has demand \nfor the Very Green Grass \nsoaring, and thus its \nvalue.",
+						1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 7 ),
+		new Card_Info ( "Fight Ore Flight", "Paperweights have made \na comeback! Demand for \nAnthonium Ore soars, \nand so does its value.",
+						1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 8 ),
+		new Card_Info ( "Grub for Money", "Two words. Grub Soup. \nDemand for Grub soars, \nas does its value.",
+						1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 9 ),
+		new Card_Info ( "I'm lovin' it", "Demand for smiles \nincreases, as does the \nvalue of Tender Love \nand Care.",
+						1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 10 ),
+		new Card_Info ( "The Other Side of the Hill", "Scientists have produced \nExtremely Green Grass, \ncausing demand for Very \nGreen Grass to plummet, \nand its value follows suit.",
+						1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 0, 11 ),
+		new Card_Info ( "Bust Ore Boom", "Orelando, a major importer \nof Anthonium Ore switches to \neco-friendly Ethanonium \nGas. Demand for Anthonium \nOre decreases, as does \nits value.",
+						1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 0, 12 ),
+		new Card_Info ( "Money for Grub", "Heavy tariffs have been \nimposed as to protect \nhomegrown grubs in many \nmajor importer countries. \nDemand for your Grub \ndrops, sending its value to \nthe bargain bin.",
+						1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 0, 13 ),
+		new Card_Info ( "She Loves Me Not", "Even-petalled flowers \ndominate the industry. \nDisheartened fellows have \nno room for Tender Love \nand Care. Values jump off \nthe bridge.",
+						1, 1, 1, 1, 1, 0, 0, 0, 0, 2, 0, 14 ),
 	};
 
 	LinkedList 			effect_list = new LinkedList();
@@ -285,9 +302,9 @@ public class ECONGAME extends Applet implements MouseListener
 			new Tile_Info ( "Card 1",			getImage(base, "images/card3.gif" ) ),				// Card 1 - 31
 			new Tile_Info ( "Card 2",			getImage(base, "images/card3.gif" ) ),				// Card 2
 			new Tile_Info ( "Card 3",			getImage(base, "images/card3.gif" ) ),				// Card 3
-			new Tile_Info ( "Card 4",			getImage(base, "images/card4.gif" ) ),				// Card 4
-			new Tile_Info ( "Card 5",			getImage(base, "images/card3.gif" ) ),				// Card 5
-			new Tile_Info ( "Card 6",			getImage(base, "images/card3.gif" ) ),				// Card 6
+			new Tile_Info ( "Card 4",			getImage(base, "images/card3.gif" ) ),				// Card 4
+			new Tile_Info ( "Card 5",			getImage(base, "images/card5.gif" ) ),				// Card 5
+			new Tile_Info ( "Card 6",			getImage(base, "images/card6.gif" ) ),				// Card 6
 			new Tile_Info ( "Card 7",			getImage(base, "images/card7.gif" ) ),				// Card 7
 			new Tile_Info ( "Card 8",			getImage(base, "images/card3.gif" ) ),				// Card 8
 			new Tile_Info ( "Card 9",			getImage(base, "images/card3.gif" ) ),				// Card 9
@@ -300,6 +317,13 @@ public class ECONGAME extends Applet implements MouseListener
 			new Tile_Info ( "Card 16",			getImage(base, "images/card3.gif" ) ),				// Card 16
 			new Tile_Info ( "Card 17",			getImage(base, "images/card17.gif" ) ),				// Card 17
 			new Tile_Info ( "Card 18",			getImage(base, "images/card3.gif" ) ),				// Card 18
+			new Tile_Info ( "Card 19",			getImage(base, "images/card3.gif" ) ),				// Card 19
+			new Tile_Info ( "Card 20",			getImage(base, "images/card3.gif" ) ),				// Card 20
+			new Tile_Info ( "Card 21",			getImage(base, "images/card3.gif" ) ),				// Card 21
+			new Tile_Info ( "Card 22",			getImage(base, "images/card3.gif" ) ),				// Card 22
+			new Tile_Info ( "Card 23",			getImage(base, "images/card3.gif" ) ),				// Card 23
+			new Tile_Info ( "Card 24",			getImage(base, "images/card3.gif" ) ),				// Card 24
+			new Tile_Info ( "Card 25",			getImage(base, "images/card3.gif" ) ),				// Card 25
 		};
 
 		int tempcol, temprow;
@@ -370,6 +394,7 @@ public class ECONGAME extends Applet implements MouseListener
 						repaint();			// repaint
 
 						explore_num--;
+						tilesexplored++;
 						end_action();
 					}
 				}
@@ -617,15 +642,15 @@ public class ECONGAME extends Applet implements MouseListener
 		{
 			if ( ke.getButton() == 1 )			// when left mouse button is clicked
 			{
-				if (player_list[cur_turn].resources[0] >= paying[0]+100)
+				if (player_list[cur_turn].resources[0] >= (paying[0]/exchange[0]+1)*100)
 				{
-					if (total_paying()+100*exchange[0] > loan[cur_turn-1])
+					if (total_paying()+exchange[0] > loan[cur_turn-1])
 					{
-						paying[0]+=(int) (loan[cur_turn-1]-total_paying())/exchange[0];
+						paying[0]+=(int) (loan[cur_turn-1]-total_paying())*100/exchange[0];
 					}
 					else
 					{
-						paying[0]+=100;
+						paying[0]+=exchange[0];
 					}
 				}
 			}
@@ -633,7 +658,7 @@ public class ECONGAME extends Applet implements MouseListener
 			{
 				if ( paying[0] > 0 )
 				{
-					paying[0]-=100;
+					paying[0]-=exchange[0];
 				}
 			}
 			repaint();
@@ -642,15 +667,15 @@ public class ECONGAME extends Applet implements MouseListener
 		{
 			if ( ke.getButton() == 1 )			// when left mouse button is clicked
 			{
-				if (player_list[cur_turn].resources[1] >= paying[1]+100)
+				if (player_list[cur_turn].resources[1] >= (paying[1]/exchange[1]+1)*100)
 				{
-					if (total_paying()+100*exchange[1] > loan[cur_turn-1])
+					if (total_paying()+exchange[1] > loan[cur_turn-1])
 					{
-						paying[1]+=(int) (loan[cur_turn-1]-total_paying())/exchange[1];
+						paying[1]+=(int) (loan[cur_turn-1]-total_paying())*100/exchange[1];
 					}
 					else
 					{
-						paying[1]+=100;
+						paying[1]+=exchange[1];
 					}
 				}
 			}
@@ -658,7 +683,7 @@ public class ECONGAME extends Applet implements MouseListener
 			{
 				if ( paying[1] > 0 )
 				{
-					paying[1]-=100;
+					paying[1]-=exchange[1];
 				}
 			}
 			repaint();
@@ -667,15 +692,15 @@ public class ECONGAME extends Applet implements MouseListener
 		{
 			if ( ke.getButton() == 1 )			// when left mouse button is clicked
 			{
-				if (player_list[cur_turn].resources[2] >= paying[2]+100)
+				if (player_list[cur_turn].resources[2] >= (paying[2]/exchange[2]+1)*100)
 				{
-					if (total_paying()+100*exchange[2] > loan[cur_turn-1])
+					if (total_paying()+exchange[2] > loan[cur_turn-1])
 					{
-						paying[2]+=(int) (loan[cur_turn-1]-total_paying())/exchange[2];
+						paying[2]+=(int) (loan[cur_turn-1]-total_paying())*100/exchange[2];
 					}
 					else
 					{
-						paying[2]+=100;
+						paying[2]+=exchange[2];
 					}
 				}
 			}
@@ -683,7 +708,7 @@ public class ECONGAME extends Applet implements MouseListener
 			{
 				if ( paying[2] > 0 )
 				{
-					paying[2]-=100;
+					paying[2]-=exchange[2];
 				}
 			}
 			repaint();
@@ -692,15 +717,15 @@ public class ECONGAME extends Applet implements MouseListener
 		{
 			if ( ke.getButton() == 1 )			// when left mouse button is clicked
 			{
-				if (player_list[cur_turn].resources[3] >= paying[3]+100)
+				if (player_list[cur_turn].resources[3] >= (paying[3]/exchange[3]+1)*100)
 				{
-					if (total_paying()+100*exchange[3] > loan[cur_turn-1])
+					if (total_paying()+exchange[3] > loan[cur_turn-1])
 					{
-						paying[3]+=(int) (loan[cur_turn-1]-total_paying())/exchange[3];
+						paying[3]+=(int) (loan[cur_turn-1]-total_paying())*100/exchange[3];
 					}
 					else
 					{
-						paying[3]+=100;
+						paying[3]+=exchange[3];
 					}
 				}
 			}
@@ -708,7 +733,7 @@ public class ECONGAME extends Applet implements MouseListener
 			{
 				if ( paying[3] > 0 )
 				{
-					paying[3]-=100;
+					paying[3]-=exchange[3];
 				}
 			}
 			repaint();
@@ -719,7 +744,7 @@ public class ECONGAME extends Applet implements MouseListener
 			loan[cur_turn-1]-=total_paying();
 			for ( int rn=0;rn<4;rn++)
 			{
-				player_list[cur_turn].resources[rn]-=paying[rn];
+				player_list[cur_turn].resources[rn]-=(paying[rn]/exchange[rn])*100;
 				paying[rn] = 0;
 			}
 			repaint();
@@ -897,7 +922,7 @@ public class ECONGAME extends Applet implements MouseListener
 			temp = 0;
 			for ( int rn=0;rn<4;rn++ )
 			{
-				temp += player_list[cur_turn].resources[rn]*exchange[rn];
+				temp += player_list[cur_turn].resources[rn]*exchange[rn]/100;
 				g.drawImage ( tile_list[RESOURCE_IMG+rn].img_file, 405+22*rn, 343, this);
 			}
 			g.drawString ( "Total: " + temp, 405, 327);
@@ -1018,6 +1043,8 @@ public class ECONGAME extends Applet implements MouseListener
 
 	public void change_turn ()
 	{
+		int totrsrc;
+
 		if ( cur_turn > 0 )
 		{
 			resource_add();
@@ -1032,6 +1059,22 @@ public class ECONGAME extends Applet implements MouseListener
 		}
 
 		effectmsg = "";
+
+		temp = 0;
+		if ( tilesexplored == lot_cols*lot_rows )
+		{
+			for (int pnum = 1; pnum<=5;pnum++)
+			{
+				totrsrc = (int) (player_list[pnum].resources[0]*exchange[0]+player_list[pnum].resources[1]*exchange[1]
+					+player_list[pnum].resources[2]*exchange[2]+player_list[pnum].resources[3]*exchange[3]);
+				if ( totrsrc > temp )
+				{
+					temp = totrsrc;
+					effectmsg = player_list[pnum].username + " is the winner.";
+
+				}
+			}
+		}
 
 		// start of turn
 		explore_num = 1;
@@ -1201,7 +1244,35 @@ public class ECONGAME extends Applet implements MouseListener
 			}
 			else if (temp.effect == 7)
 			{
-				exchange[3] -= 0.1;
+				exchange[0] += (roll_die(5)+1);
+			}
+			else if (temp.effect == 8)
+			{
+				exchange[1] += (roll_die(5)+1);
+			}
+			else if (temp.effect == 9)
+			{
+				exchange[2] += (roll_die(5)+1);
+			}
+			else if (temp.effect == 10)
+			{
+				exchange[3] += (roll_die(5)+1);
+			}
+			else if (temp.effect == 11)
+			{
+				exchange[0] -= (roll_die(5)+1);
+			}
+			else if (temp.effect == 12)
+			{
+				exchange[1] -= (roll_die(5)+1);
+			}
+			else if (temp.effect == 13)
+			{
+				exchange[2] -= (roll_die(5)+1);
+			}
+			else if (temp.effect == 14)
+			{
+				exchange[3] -= (roll_die(5)+1);
 			}
 
 			// remove it from the effects list if it is done
@@ -1235,7 +1306,7 @@ public class ECONGAME extends Applet implements MouseListener
 
 	public int total_paying ()
 	{
-		return (int) (exchange[0]*paying[0]+exchange[1]*paying[1]+exchange[2]*paying[2]+exchange[3]*paying[3]);
+		return (int) (paying[0]+paying[1]+paying[2]+paying[3]);
 	}
 
 	public void end_action ()
